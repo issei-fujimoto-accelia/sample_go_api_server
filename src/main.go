@@ -1,40 +1,117 @@
 package main
+
 import (
 	"encoding/json"
 	"net/http"
+	"path/filepath"
+	"strings"
 )
+
 type Response struct {
 	Status int  `json:"status"`
-	Message string `json:"message"`
+	Data string `json:"data"`
 }
-func ok(w http.ResponseWriter, req *http.Request) {
+type ResponseMulti struct {
+	Status int  `json:"status"`
+	Data []User `json:"data"`
+}
+type User struct {
+	Name string  `json:"name"`
+	Age int `json:"age"`
+}
+
+func setHeader(w http.ResponseWriter) http.ResponseWriter {
 	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Headers", "*")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set( "Access-Control-Allow-Methods","GET, POST, PUT, DELETE, OPTIONS" )
+	return w
+}
+
+func ok(w http.ResponseWriter, req *http.Request) {
+	setHeader(w)
 	response := Response{
 		Status: 200,
-		Message: "ok",
+		Data: "ok",
 	}
 	json.NewEncoder(w).Encode(response)
 }
+
+func list(w http.ResponseWriter, req *http.Request) {
+	setHeader(w)
+	users := []User{
+		User{
+			Name: "aaa",
+			Age: 100,
+		},
+		User{
+			Name: "bbb",
+			Age: 200,
+		},
+		User{
+			Name: "ccc",
+			Age: 300,
+		},
+	}
+	response := ResponseMulti{
+		Status: 200,
+		Data: users,
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+func listWithPath(w http.ResponseWriter, req *http.Request) {
+	setHeader(w)
+	sub := strings.TrimPrefix(req.URL.Path, "/list")
+	_, id := filepath.Split(sub)
+	if id == "" {
+		response := ResponseMulti{
+			Status: 200,
+			Data: []User{},
+		}
+		json.NewEncoder(w).Encode(response)
+		return
+	}
+
+	users := []User{
+		User{
+			Name: "alone!",
+			Age: 100,
+		},
+	}
+	response := ResponseMulti{
+		Status: 200,
+		Data: users,
+	}
+	json.NewEncoder(w).Encode(response)
+	return
+}
+
+
 func serverErr(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	setHeader(w)
 	response := Response{
 		Status: 500,
-		Message: "server error",
+		Data: "server error",
 	}
 	json.NewEncoder(w).Encode(response)
 }
 func notFound(w http.ResponseWriter, req *http.Request) {
-	w.Header().Set("Content-Type", "application/json")
+	setHeader(w)
 	response := Response{
 		Status: 404,
-		Message: "not found",
+		Data: "not found",
 	}
 	json.NewEncoder(w).Encode(response)
 }
 
 func main() {
 	http.HandleFunc("/ok", ok)
+	http.HandleFunc("/list", list)
+	http.HandleFunc("/list/", listWithPath)
 	http.HandleFunc("/server-error", serverErr)
 	http.HandleFunc("/not-found", notFound)
-	http.ListenAndServe(":8002", nil)
+	if err := http.ListenAndServe(":8002", nil); err != nil {
+		panic(err)
+	}
 }
