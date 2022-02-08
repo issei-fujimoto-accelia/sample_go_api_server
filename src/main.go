@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"encoding/json"
 	"net/http"
 	"path/filepath"
@@ -30,6 +31,7 @@ func setHeader(w http.ResponseWriter) http.ResponseWriter {
 
 func ok(w http.ResponseWriter, req *http.Request) {
 	setHeader(w)
+	fmt.Println("ok!!")
 	response := Response{
 		Status: 200,
 		Data: "ok",
@@ -39,6 +41,7 @@ func ok(w http.ResponseWriter, req *http.Request) {
 
 func list(w http.ResponseWriter, req *http.Request) {
 	setHeader(w)
+	fmt.Println("list!!")
 	users := []User{
 		User{
 			Name: "aaa",
@@ -106,6 +109,7 @@ func notFound(w http.ResponseWriter, req *http.Request) {
 }
 
 func main() {
+	fmt.Println("start!")
 	http.HandleFunc("/ok", ok)
 	http.HandleFunc("/list", list)
 	http.HandleFunc("/list/", listWithPath)

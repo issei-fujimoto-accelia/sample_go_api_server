@@ -2,6 +2,9 @@ version: '3'
 services:
   server:
     build: .
-    tty: true        
+    tty: true
+    volumes:
+      - ./src:/opt/sandbox-docker-go/
+    command: "go run /opt/sandbox-docker-go/main.go"
     ports:
       - "8003:8002"
